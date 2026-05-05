@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AnXiEtY</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;600;900&display=swap" rel="stylesheet">
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        :root {
+            --plasma-orange: #FF5F1F;
+            --deep-space: #020205;
+            --star-white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.05);
+            --safe-green: #00FF41;
+        }
+
+        * { box-sizing: border-box; cursor: crosshair; margin: 0; padding: 0; }
+        body { 
+            background: var(--deep-space); 
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 95, 31, 0.08), transparent 70%), url('https://www.transparenttextures.com/patterns/stardust.png');
+            color: var(--star-white); font-family: 'Lexend', sans-serif; overflow-x: hidden; padding-bottom: 80px;
+        }
+
+        /* --- NAVIGATION --- */
+        .hub-nav { 
+            position: sticky; top: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; z-index: 5000; background: rgba(2, 2, 5, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass);
+        }
+        .nav-link { 
+            background: var(--glass); color: var(--star-white); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 8px 16px; font-family: 'Lexend'; margin-left: 5px; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: 600; font-size: 0.8rem;
+        }
+        .nav-link:hover { background: var(--plasma-orange); box-shadow: 0 0 15px var(--plasma-orange); }
+
+        /* --- PAGE SYSTEM --- */
+        .page { display: none; padding: 40px 5%; animation: slideUp 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- GRID ENGINE --- */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
+        .product-cell { 
+            background: var(--glass); border-radius: 20px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.4s; text-align: center;
+        }
+        .product-cell:hover { border-color: var(--plasma-orange); transform: scale(1.02); }
+        .cell-img { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
+        .cell-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- PREVIEW DOSSIER --- */
+        .dossier-layout { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; max-width: 1200px; margin: 0 auto; }
+        .dossier-img { flex: 1; min-width: 300px; max-width: 500px; border-radius: 24px; overflow: hidden; border: 1px solid var(--glass); }
+        .dossier-img img { width: 100%; display: block; }
+
+        /* --- PAYMENT TERMINAL --- */
+        .payment-gateway-container {
+            max-width: 500px; margin: 0 auto; background: #050508; border: 1px solid var(--safe-green);
+            padding: 40px; border-radius: 20px; box-shadow: 0 0 40px rgba(0, 255, 65, 0.1);
+        }
+
+        /* --- BUTTONS & FOOTER --- */
+        .action-btn { background: var(--star-white); color: var(--deep-space); border: none; padding: 16px; width: 100%; font-weight: 900; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-top: 15px; text-transform: uppercase; }
+        .action-btn:hover { background: var(--plasma-orange); color: white; }
+        
+        .permanent-footer { position: fixed; bottom: 0; width: 100%; background: rgba(2, 2, 5, 0.98); padding: 15px; text-align: center; border-top: 1px solid var(--glass); font-size: 0.7rem; color: rgba(255,255,255,0.3); z-index: 6000; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <nav class="hub-nav">
+        <div style="font-weight: 900; font-size: 1.6rem; color: var(--plasma-orange); cursor:pointer;" onclick="fluidNavigate('introPage')">AnXiEtY</div>
+        <div>
+            <button class="nav-link" onclick="renderCategory('shirts')">SHIRTS</button>
+            <button class="nav-link" onclick="renderCategory('pants')">PANTS</button>
+            <button class="nav-link" onclick="renderCategory('shoes')">SHOES</button>
+            <button class="nav-link" onclick="fluidNavigate('cartPage')">BAG(<span id="cartCount">0</span>)</button>
+        </div>
+    </nav>
+
+    <main id="hub-anchor">
+        
+        <section id="introPage" class="page active">
+            <div style="text-align: center; padding: 100px 0;">
+                <h1 style="font-size: 5rem; text-shadow: 0 0 30px var(--plasma-orange);">AnXiEtY</h1>
+                <p style="margin-bottom: 40px; opacity: 0.5; letter-spacing: 5px;">UNIVERSAL_HUB // 2026_ARCHIVE</p>
+                <button class="action-btn" style="max-width: 250px;" onclick="renderCategory('shirts')">ENTER INVENTORY</button>
+            </div>
+        </section>
+
+        <section id="inventoryPage" class="page">
+            <h2 id="catTitle" style="margin-bottom: 30px; border-left: 4px solid var(--plasma-orange); padding-left: 15px;">INVENTORY</h2>
+            <div class="product-grid" id="inventoryGrid"></div>
+        </section>
+
+        <section id="productPage" class="page">
+            <div id="dossierAnchor"></div>
+        </section>
+
+        <section id="cartPage" class="page">
+            <div style="max-width: 600px; margin: 0 auto; background: var(--glass); padding: 30px; border-radius: 24px;">
+                <h2 style="margin-bottom: 20px;">LOGISTICS_QUEUE</h2>
+                <div id="bagItems"></div>
+                <h3 id="totalDisplay" style="color: var(--plasma-orange); margin: 25px 0;">TOTAL: ₦0</h3>
+                <button class="action-btn" onclick="fluidNavigate('paymentPage')">PROCEED TO SECURE TERMINAL</button>
+            </div>
+        </section>
+
+        <section id="paymentPage" class="page">
+            <div class="payment-gateway-container">
+                <span style="color:var(--safe-green); font-size:0.7rem; letter-spacing:2px;">● ENCRYPTED_CONNECTION_ACTIVE</span>
+                <h1 style="margin: 10px 0 20px;">CHECKOUT</h1>
+                <input type="text" id="payName" placeholder="OPERATIVE_NAME" style="width:100%; padding:15px; background:#111; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px;">
+                <input type="email" id="payEmail" placeholder="NETWORK_EMAIL" style="width:100%; padding:15px; background:#111; border:1px solid #333; color:white; border-radius:10px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; margin: 20px 0;">
+                    <p style="font-size: 0.8rem;">FINAL SETTLEMENT:</p>
+                    <h2 id="finalAmount" style="color: var(--plasma-orange);">₦0</h2>
+                </div>
+                <button class="action-btn" style="background: var(--safe-green); color: black;" onclick="executePaystack()">AUTHORIZE_PAYMENT</button>
+                <button class="nav-link" style="margin-top:20px; display:block; border:none; width:100%;" onclick="fluidNavigate('cartPage')">BACK_TO_BAG</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="permanent-footer">@2026 ANXIETY HUB SYSTEMS // ALL RIGHTS RESERVED</footer>
+
+    <script>
+        // --- SECURE API KEYS ---
+        const PAYSTACK_KEY = 'pk_live_784c1eefbc4bd93de0dd13dd31ee2e2b033c2036';
+        const EMAILJS_SVC = 'service_1x6x31p';
+        const EMAILJS_TMP = 'template_vv9zvrl';
+        const EMAILJS_PUB = 'X00-nwtedBT9T_nGB';
+
+        (function(){ emailjs.init(EMAILJS_PUB); })();
+
+        // ==========================================
+        // PRODUCT INVENTORY CODE: 1 TO 33
+        // ==========================================
+        const INVENTORY = {
+            shirts: [
+                { id: 's1', cat: 'shirts', name: 'ANXIETY SHIRT v01', price: 15000, img: 'images/p1.jpg' },
+                { id: 's2', cat: 'shirts', name: 'ANXIETY SHIRT v02', price: 15000, img: 'images/p2.jpg' },
+                { id: 's3', cat: 'shirts', name: 'ANXIETY SHIRT v03', price: 15000, img: 'images/p3.jpg' },
+                { id: 's4', cat: 'shirts', name: 'ANXIETY SHIRT v04', price: 15000, img: 'images/p4.jpg' },
+                { id: 's5', cat: 'shirts', name: 'ANXIETY SHIRT v05', price: 15000, img: 'images/p5.jpg' },
+                { id: 's6', cat: 'shirts', name: 'ANXIETY SHIRT v06', price: 15000, img: 'images/p6.jpg' },
+                { id: 's7', cat: 'shirts', name: 'ANXIETY SHIRT v07', price: 15000, img: 'images/p7.jpg' },
+                { id: 's8', cat: 'shirts', name: 'ANXIETY SHIRT v08', price: 15000, img: 'images/p8.jpg' },
+                { id: 's9', cat: 'shirts', name: 'ANXIETY SHIRT v09', price: 15000, img: 'images/p9.jpg' },
+                { id: 's10', cat: 'shirts', name: 'ANXIETY SHIRT v10', price: 15000, img: 'images/p10.jpg' },
+                { id: 's11', cat: 'shirts', name: 'ANXIETY SHIRT v11', price: 15000, img: 'images/p11.jpg' }
+            ],
+            pants: [
+                { id: 'p12', cat: 'pants', name: 'ANXIETY PANT v12', price: 25000, img: 'images/pants1.jpg' },
+                { id: 'p13', cat: 'pants', name: 'ANXIETY PANT v13', price: 25000, img: 'images/pants2.jpg' },
+                { id: 'p14', cat: 'pants', name: 'ANXIETY PANT v14', price: 25000, img: 'images/pants3.jpg' },
+                { id: 'p15', cat: 'pants', name: 'ANXIETY PANT v15', price: 25000, img: 'images/pants4.jpg' },
+                { id: 'p16', cat: 'pants', name: 'ANXIETY PANT v16', price: 25000, img: 'images/pants5.jpg' },
+                { id: 'p17', cat: 'pants', name: 'ANXIETY PANT v17', price: 25000, img: 'images/pants6.jpg' },
+                { id: 'p18', cat: 'pants', name: 'ANXIETY PANT v18', price: 25000, img: 'images/pants7.jpg' },
+                { id: 'p19', cat: 'pants', name: 'ANXIETY PANT v19', price: 25000, img: 'images/pants8.jpg' },
+                { id: 'p20', cat: 'pants', name: 'ANXIETY PANT v20', price: 25000, img: 'images/pants9.jpg' },
+                { id: 'p21', cat: 'pants', name: 'ANXIETY PANT v21', price: 25000, img: 'images/pants10.jpg' },
+                { id: 'p22', cat: 'pants', name: 'ANXIETY PANT v22', price: 25000, img: 'images/pants11.jpg' }
+            ],
+            shoes: [
+                { id: 'h23', cat: 'shoes', name: 'ANXIETY SHOE v23', price: 45000, img: 'images/shoes1.jpg' },
+                { id: 'h24', cat: 'shoes', name: 'ANXIETY SHOE v24', price: 45000, img: 'images/shoes2.jpg' },
+                { id: 'h25', cat: 'shoes', name: 'ANXIETY SHOE v25', price: 45000, img: 'images/shoes3.jpg' },
+                { id: 'h26', cat: 'shoes', name: 'ANXIETY SHOE v26', price: 45000, img: 'images/shoes4.jpg' },
+                { id: 'h27', cat: 'shoes', name: 'ANXIETY SHOE v27', price: 45000, img: 'images/shoes5.jpg' },
+                { id: 'h28', cat: 'shoes', name: 'ANXIETY SHOE v28', price: 45000, img: 'images/shoes6.jpg' },
+                { id: 'h29', cat: 'shoes', name: 'ANXIETY SHOE v29', price: 45000, img: 'images/shoes7.jpg' },
+                { id: 'h30', cat: 'shoes', name: 'ANXIETY SHOE v30', price: 45000, img: 'images/shoes8.jpg' },
+                { id: 'h31', cat: 'shoes', name: 'ANXIETY SHOE v31', price: 45000, img: 'images/shoes9.jpg' },
+                { id: 'h32', cat: 'shoes', name: 'ANXIETY SHOE v32', price: 45000, img: 'images/shoes10.jpg' },
+                { id: 'h33', cat: 'shoes', name: 'ANXIETY SHOE v33', price: 45000, img: 'images/shoes11.jpg' }
+            ]
+        };
+
+        let bag = [];
+
+        // --- NAVIGATION ENGINE ---
+        function fluidNavigate(targetId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            if(targetId === 'paymentPage') {
+                const total = bag.reduce((sum, i) => sum + i.price, 0);
+                document.getElementById('finalAmount').innerText = `₦${total.toLocaleString()}`;
+            }
+            window.scrollTo(0,0);
+        }
+
+        // --- HUB LOGIC ---
+        function renderCategory(cat) {
+            const grid = document.getElementById('inventoryGrid');
+            document.getElementById('catTitle').innerText = `COLLECTION // ${cat}`;
+            grid.innerHTML = INVENTORY[cat].map(p => `
+                <div class="product-cell" onclick="viewPreview('${cat}', '${p.id}')">
+                    <div class="cell-img"><img src="${p.img}" onerror="this.src='https://via.placeholder.com/400/000/fff?text=ASSET'"></div>
+                    <h3>${p.name}</h3>
+                    <p style="color:var(--plasma-orange)">₦${p.price.toLocaleString()}</p>
+                </div>`).join('');
+            fluidNavigate('inventoryPage');
+        }
+
+        function viewPreview(cat, id) {
+            const p = INVENTORY[cat].find(x => x.id === id);
+            document.getElementById('dossierAnchor').innerHTML = `
+                <div class="dossier-layout">
+                    <div class="dossier-img"><img src="${p.img}" onerror="this.src='https://via.placeholder.com/600/000/fff?text=ASSET_DATA'"></div>
+                    <div class="dossier-info">
+                        <span style="font-size:0.7rem; color:var(--plasma-orange); letter-spacing:2px;">[ PREVIEW_MODE ]</span>
+                        <h1 style="font-size:3.5rem; margin:10px 0;">${p.name}</h1>
+                        <p style="opacity:0.6; margin-bottom:30px;">Industrial grade garment engineered for nocturnal deployment. High-stress resistance materials with a signature oversized silhouette.</p>
+                        <h2 style="font-size:2.5rem; color:var(--plasma-orange); margin-bottom:30px;">₦${p.price.toLocaleString()}</h2>
+                        <button class="action-btn" onclick="addToBag('${cat}','${p.id}')">ADD_TO_BAG</button>
+                    </div>
+                </div>`;
+            fluidNavigate('productPage');
+        }
+
+        function addToBag(cat, id) {
+            bag.push(INVENTORY[cat].find(x => x.id === id));
+            document.getElementById('cartCount').innerText = bag.length;
+            updateBagUI();
+            fluidNavigate('cartPage');
+        }
+
+        function updateBagUI() {
+            const list = document.getElementById('bagItems');
+            const total = bag.reduce((sum, i) => sum + i.price, 0);
+            document.getElementById('totalDisplay').innerText = `TOTAL: ₦${total.toLocaleString()}`;
+            list.innerHTML = bag.map((item, i) => `
+                <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--glass);">
+                    <span>${item.name}</span>
+                    <button onclick="removeFromBag(${i})" style="color:var(--plasma-orange); background:none; border:none; cursor:pointer;">[DROP]</button>
+                </div>`).join('');
+        }
+
+        function removeFromBag(i) {
+            bag.splice(i, 1);
+            document.getElementById('cartCount').innerText = bag.length;
+            updateBagUI();
+        }
+
+        // --- PAYMENT & NOTIFICATION ---
+        function executePaystack() {
+            const email = document.getElementById('payEmail').value;
+            const name = document.getElementById('payName').value;
+            const total = bag.reduce((sum, item) => sum + item.price, 0);
+
+            if(!email || !name) return alert("REQUIRED: OPERATIVE_DATA_MISSING");
+            if(total <= 0) return alert("ERROR: QUEUE_EMPTY");
+
+            const handler = PaystackPop.setup({
+                key: PAYSTACK_KEY,
+                email: email,
+                amount: total * 100,
+                currency: 'NGN',
+                callback: function(res) { sendNotification(name, email, res.reference); },
+                onClose: function() { alert("TERMINAL_CLOSED"); }
+            });
+            handler.openIframe();
+        }
+
+        function sendNotification(name, email, ref) {
+            const params = { from_name: name, customer_email: email, order_details: bag.map(i => i.name).join(", "), transaction_ref: ref };
+            emailjs.send(EMAILJS_SVC, EMAILJS_TMP, params)
+                .then(() => { alert("ARMOUR_SECURED"); location.reload(); }, (err) => { location.reload(); });
+        }
+    </script>
+</body>
+</html>
